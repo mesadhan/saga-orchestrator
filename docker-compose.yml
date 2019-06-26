@@ -1,0 +1,16 @@
+version: "3"
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - 'rabbitmq_data:/data'
+    environment:
+      RABBITMQ_DEFAULT_USER: "sadhan"
+      RABBITMQ_DEFAULT_PASS: "123456"
+      RABBITMQ_DEFAULT_VHOST: "/"
+
+volumes:
+  rabbitmq_data:
