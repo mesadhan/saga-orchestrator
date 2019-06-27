@@ -1,7 +1,5 @@
-FROM rabbitmq
-RUN rabbitmq-plugins enable --offline rabbitmq_management
-EXPOSE 15671 15672
-
-
-# docker run -d --hostname my-rabbit --name some-rabbit rabbitmq:3-management -p 15672:15672
-# http://localhost:15672
+FROM openjdk:8-jdk-alpine
+EXPOSE 8080
+WORKDIR /app
+COPY target/springorchestrator-0.0.1-SNAPSHOT.jar .
+ENTRYPOINT [ "java", "-jar", "orchestrator-0.0.1-SNAPSHOT.jar" ]

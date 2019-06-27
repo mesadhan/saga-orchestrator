@@ -1,11 +1,11 @@
 package com.inktechs.orchestrator.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inktechs.orchestrator.model.*;
 import com.inktechs.orchestrator.repository.LogFileRepository;
 import com.inktechs.orchestrator.repository.SagaCommandRepository;
 import com.inktechs.orchestrator.repository.ServiceHostMappingRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +34,7 @@ public class OrchestratorController {
 
 
     @GetMapping("orchestrator/{command}")
-    public void getOrder(@PathVariable("command")String command, String json) {
+    public void getOrder(@PathVariable("command") String command, String json) {
 
         rabbitTemplate.setReplyTimeout(60000);
         //rabbitTemplate.setUseTemporaryReplyQueues(false);
@@ -42,12 +42,12 @@ public class OrchestratorController {
         List<SagaStep> sagaStepList = sagaCommand.getSagaStepList();
 
 
-        Object response="100";
+        Object response = "100";
         for (SagaStep sagaStep : sagaStepList) {
-            System.out.println("Requesting to "+ sagaStep.getServiceName() + " : " + response);
-            response =rabbitTemplate.convertSendAndReceive(sagaStep.getServiceName() + "_exchange","",response);
-            if(response== null){
-                System.out.println("Error in "+ sagaStep.getServiceName());
+            System.out.println("Requesting to " + sagaStep.getServiceName() + " : " + response);
+            response = rabbitTemplate.convertSendAndReceive(sagaStep.getServiceName() + "_exchange", "", response);
+            if (response == null) {
+                System.out.println("Error in " + sagaStep.getServiceName());
                 break;
             }
 
@@ -164,77 +164,72 @@ public class OrchestratorController {
     }*/
 
 
-
     public String jsonTocustomer(String jStr) throws IOException {
 
-        return  jStr;
+        return jStr;
 
     }
 
     public String customerTobank(String cStr) throws IOException {
-        ObjectMapper objectMapper= new ObjectMapper();
-        Customer customer=objectMapper.readValue(cStr,Customer.class);
-        Bank bank= new Bank();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Customer customer = objectMapper.readValue(cStr, Customer.class);
+        Bank bank = new Bank();
         bank.setId(customer.getId());
         bank.setBalance(customer.getBalance());
-        String bStr= objectMapper.writeValueAsString(bank);
-        return  bStr;
+        String bStr = objectMapper.writeValueAsString(bank);
+        return bStr;
 
     }
+
     public String bankToorder(String bStr) throws IOException {
-        ObjectMapper objectMapper= new ObjectMapper();
-        Bank bank=objectMapper.readValue(bStr,Bank.class);
-        OrderEntity order= new OrderEntity();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Bank bank = objectMapper.readValue(bStr, Bank.class);
+        OrderEntity order = new OrderEntity();
         order.setId(bank.getId());
         order.setOrderState(OrderState.APPROVED);
-        String oStr= objectMapper.writeValueAsString(order);
-        return  oStr;
+        String oStr = objectMapper.writeValueAsString(order);
+        return oStr;
 
     }
 
     public String customerToorder(String cStr) throws IOException {
-        ObjectMapper objectMapper= new ObjectMapper();
-        Customer customer=objectMapper.readValue(cStr,Customer.class);
-        OrderEntity order= new OrderEntity();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Customer customer = objectMapper.readValue(cStr, Customer.class);
+        OrderEntity order = new OrderEntity();
         order.setId(customer.getId());
         order.setOrderState(OrderState.APPROVED);
-        String oStr= objectMapper.writeValueAsString(order);
-        return  oStr;
+        String oStr = objectMapper.writeValueAsString(order);
+        return oStr;
 
     }
 
 
-
-
-
-
-
-
-
-
     @PostMapping("orchestrator/{command}")
-    public void postSagaCommand(@PathVariable("command") String command, @RequestBody Customer customer) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InterruptedException {
+    public void postSagaCommand(@PathVariable("command") String command, @RequestBody Customer customer)
+            throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InterruptedException {
+
+        System.out.println("postSagaCommand:------------- " + command);
 
         rabbitTemplate.setReplyTimeout(60000);
-        ObjectMapper objectMapper= new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
 
 
         SagaCommand sagaCommand = sagaCommandRepository.findSagaCommandByCommand(command);
-         String callFlowRefId= sagaCommand.getId();
+        String callFlowRefId = sagaCommand.getId();
         List<SagaStep> sagaStepList = sagaCommand.getSagaStepList();
 
-       // String request=json;
+        // String request=json;
 
-        for(int i=1; i<=1000; i++) {
-            TimeUnit.MILLISECONDS.sleep(200);
+        for (int i = 1; i <= 100; i++) {
+            TimeUnit.MILLISECONDS.sleep(2000);
             customer.setId(String.valueOf(i));
-            String request=objectMapper.writeValueAsString(customer);
+            String request = objectMapper.writeValueAsString(customer);
             for (SagaStep sagaStep : sagaStepList) {
                 Method method = this.getClass().getDeclaredMethod(sagaStep.getBuildJsonFrom() + "To" + sagaStep.getBuildJsonTo(), String.class);
                 request = (String) method.invoke(this, request);
 
                 LogFile logFile = new LogFile(callFlowRefId, sagaStep.getServiceName(), sagaStep.getServiceName(), request);
-                System.out.println("Requesting to " + sagaStep.getServiceName()+" with endPoint " +sagaStep.getEndPointName()+ " : " + request);
+                System.out.println("Requesting to " + sagaStep.getServiceName() + " with endPoint " + sagaStep.getEndPointName() + " : " + request);
                 request = (String) rabbitTemplate.convertSendAndReceive(sagaStep.getServiceName() + "_exchange", sagaStep.getEndPointName(), request);
                 if (request == null) {
                     System.out.println("Error in " + sagaStep.getServiceName());
@@ -249,11 +244,6 @@ public class OrchestratorController {
 
             }
         }
-
-
-
-
-
 
 
     }
