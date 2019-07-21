@@ -6,7 +6,7 @@ metadata:
   name: springorchestrator
   namespace: ngfs-core-framework
 spec:
-  host: springorchestrator-ngfs-core-framework-apps.115.127.24.184.nip.io
+  host: springorchestrator-nges-core-framework-apps.115.127.24.184.nip.io
   port:
     targetPort: 8080-tcp
   to:
