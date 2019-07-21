@@ -6,7 +6,7 @@ spec:
   source:
     git:
       ref: master
-      uri: 'https://github.com/Trishna-Chakraborty/springorchestrator'
+      uri: 'https://github.com/mesadhan/springorchestrator'
     sourceSecret:
       name: github-secret
     type: Git
