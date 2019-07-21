@@ -28,7 +28,7 @@ spec:
         - name: MYSQL_USER
           value: root
         - name: MYSQL_ROOT_PASSWORD
-          value: trishna
+          value: 123456
         image: 'mysql:5.6'
         imagePullPolicy: IfNotPresent
         name: mysqlserver
